@@ -4,55 +4,48 @@ import player.Player;
 import position.Position;
 
 
-/*
-x value stands for column
-y value stands for row
-*/
-
-
 public class MyPlayer implements Player {
-    private Map map;
-    private int n;
-    private int x;
-    private int y;
+    public Map map;
     private Position position;
-    
-    public void setMap(Map newMap) {
+
+    public MyPlayer(Map newMap) {
         this.map = newMap;
-        this.n = this.map.getSize();
+        this.map.n = this.map.getSize();
         outer:
-        for(int i = 0; i < n; i++) {
-            for(int j = 0; j < n; j++) {
+        for(int i = 0; i < this.map.n; i++) {
+            for(int j = 0; j < this.map.n; j++) {
                 if(this.map.getValueAt(i, j) == 'P') {
-                    this.y = i;
-                    this.x = j;
+                    this.map.y = i;
+                    this.map.x = j;
                     break outer;
                 }
             }
         }
+        this.map.x = newMap.x;
+        this.map.y = newMap.y;
     }
     public void moveRight() {
-        if(this.x + 1 <= this.n - 1 && this.map.getValueAt(this.y, this.x + 1) != '1') {
-            this.x += 1;
+        if(this.map.x + 1 <= this.map.n - 1 && this.map.getValueAt(this.map.y, this.map.x + 1) != '1') {
+            this.map.x += 1;
         }
     }
     public void moveLeft() {
-        if(this.x - 1 >= 0 && this.map.getValueAt(this.y, this.x - 1) != '1') {
-            this.x -= 1;
+        if(this.map.x - 1 >= 0 && this.map.getValueAt(this.map.y, this.map.x - 1) != '1') {
+            this.map.x -= 1;
         }
     }
     public void moveUp() {
-        if(this.y - 1 >= 0 && this.map.getValueAt(this.y - 1, this.x) != '1') {
-            this.y -= 1;
+        if(this.map.y - 1 >= 0 && this.map.getValueAt(this.map.y - 1, this.map.x) != '1') {
+            this.map.y -= 1;
         }
     }
     public void moveDown() {
-        if(this.y + 1 <= this.n - 1 && this.map.getValueAt(this.y + 1, this.x) != '1') {
-            this.y += 1;
+        if(this.map.y + 1 <= this.map.n - 1 && this.map.getValueAt(this.map.y + 1, this.map.x) != '1') {
+            this.map.y += 1;
         }
     }
     public Position getPosition() {
-        this.position = new Position(this.x, this.y);
+        this.position = new Position(this.map.x, this.map.y);
         return this.position;
     }
 }
