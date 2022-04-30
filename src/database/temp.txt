@@ -1,0 +1,5 @@
+beka@m.ru beka 12
+dan@m.ru dan 10
+adil@m.ru adil 7
+bek@m.ru bek 8
+abi@m.ru abi 9
