@@ -94,7 +94,7 @@ public class Main {
         String login = "";
         String name = "";
         while(!isEmail(login) && !isTel(login)) {
-            System.out.println("\n\tPlease enter your login, name separated by space");
+            System.out.println("\n\tPlease enter your login (email | tel. number),\n\tname (any string) separated by space");
             System.out.print("\n\tYour input: ");
             login = in.next();
             name = in.next();
