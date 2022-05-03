@@ -61,8 +61,8 @@ public class Map {
         } catch(FileNotFoundException e) {
             System.out.println(e);
         }
-        
-   }
+    }
+
     public int getSize() {
         return this.n;
     }

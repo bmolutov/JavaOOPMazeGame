@@ -5,12 +5,11 @@ import position.Position;
 import playerInfo.PlayerInfo;
 import java.io.*;
 import java.util.*;
-import java.lang.*;
 
 
-public class MyPlayer<T> implements Player {
+public class MyPlayer implements Player {
     public Map map;
-    public PlayerInfo<T> playerInfo;
+    public PlayerInfo<?> playerInfo;
     private Position position;
 
     public MyPlayer(Map newMap) {
@@ -30,7 +29,8 @@ public class MyPlayer<T> implements Player {
         this.map.x = newMap.x;
         this.map.y = newMap.y;
     }
-    public void setPlayerInfo(PlayerInfo<T> newPlayerInfo) {
+
+    public void setPlayerInfo(PlayerInfo<?> newPlayerInfo) {
         this.playerInfo = newPlayerInfo;
         // checking if the player is present in database
         boolean isPresent = false;
@@ -40,7 +40,8 @@ public class MyPlayer<T> implements Player {
             while(in.hasNextLine()) {
                 String data = in.nextLine();
                 String[] splitted = data.split("\\s");
-                if(splitted[0].equals((String) newPlayerInfo.getLogin()) && splitted[1].equals(newPlayerInfo.getName())) {
+                String temp = String.valueOf(newPlayerInfo.getLogin());
+                if(splitted[0].equals(temp) && splitted[1].equals(newPlayerInfo.getName())) {
                     isPresent = true;
                 }
             }
@@ -53,7 +54,8 @@ public class MyPlayer<T> implements Player {
         if(!isPresent) {
             try {
                 FileWriter out = new FileWriter("./database/database.txt", true);
-                out.append(String.format("%s %s %d\n", (String) newPlayerInfo.getLogin(), newPlayerInfo.getName(), 100));
+                String temp = String.valueOf(newPlayerInfo.getLogin());
+                out.append(String.format("%s %s %d\n", temp, newPlayerInfo.getName(), 100));
                 out.close();
             } catch(IOException e) {
                 System.out.println(e);

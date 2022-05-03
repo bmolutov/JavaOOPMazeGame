@@ -16,6 +16,7 @@ public class Position {
         this.y = newY;
         this.x = newX;
     }
+
     public void setX(int newX) {
         this.x = newX;
     }

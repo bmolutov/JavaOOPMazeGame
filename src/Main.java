@@ -1,9 +1,10 @@
-import game.Game;
+// custom packages
 import invalidMapException.InvalidMapException;
 import map.Map;
 import myPlayer.MyPlayer;
 import playerInfo.PlayerInfo;
 
+// Java API packages
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,12 +23,10 @@ public class Main {
         String difficulty = setDifficulty();
        
         // given time info
-        long givenTime = setGivenTime(difficulty);
+        Long givenTime = setGivenTime(difficulty);
 
         // creating main entities 
         MyPlayer myPlayer = new MyPlayer(new Map(difficulty));
-        Game game = new Game();
-        game.addPlayer(myPlayer);
 
         // getting user's credentials
         getUserCredentials(myPlayer);
@@ -84,81 +83,96 @@ public class Main {
                 System.exit(0);
             }
         }
-        System.out.println(myPlayer.playerInfo.getLogin());
         in.close();
     }    
+    /**
+     * getting user's credentials
+     * login: can represented as telephone number or email address
+     * name: can any string
+     */
     public static void getUserCredentials(MyPlayer myPlayer) {
-        System.out.println("\n\tPlease enter your login, name separated by space");
-        System.out.print("\n\tYour input: ");
-        String login = in.next(), name = in.next();
-        if(isEmail(login)) {
-            PlayerInfo<String> playerInfo = new PlayerInfo<String>(login, name, 100);
-            myPlayer.setPlayerInfo(playerInfo);
-        } else if(isTel(login)) {
-            PlayerInfo<Long> playerInfo = new PlayerInfo<Long>(Long.parseLong(login), name, 100);
-            myPlayer.setPlayerInfo(playerInfo);
-        }
+        String login = "";
+        String name = "";
         while(!isEmail(login) && !isTel(login)) {
-            System.out.println("\tPlease, type the correct one!");
+            System.out.println("\n\tPlease enter your login, name separated by space");
             System.out.print("\n\tYour input: ");
             login = in.next();
             name = in.next();
+            PlayerInfo<?> playerInfo;
+            if(isEmail(login)) {
+                playerInfo = new PlayerInfo<String>(login, name, 100L);
+                myPlayer.setPlayerInfo(playerInfo);
+            } else if(isTel(login)) {
+                playerInfo = new PlayerInfo<Long>(Long.valueOf(login), name, 100L);
+                myPlayer.setPlayerInfo(playerInfo);
+            }
         }
     }
+    /** 
+     * checking the string whether it is an email
+     */
     public static boolean isEmail(String raw) {
         return (raw.matches("^[a-zA-Z0-9]+@[a-zA-Z]+\\.[a-zA-Z]+$")) ? true : false;
     }
+    /** 
+     * checking the string whether it is a phone number of length 11
+     */
     public static boolean isTel(String raw) {
         return (raw.matches("^[0-9]{11}$")) ? true : false;
     }
+    /** 
+     * if we have won
+     * 1) firstly we got through lines of database, each line represented as user credentials separated by whitespace
+     * 2) if our player broke it's record we update record
+     * 
+     * how rows update in database? - Just using extra text file
+     * firstly copying there all lines besides old row with old record
+     * then put there row with updated record
+     * finally putting data into cleared database file
+     */
     public static void victory(String difficulty, long elapsedTime, MyPlayer myPlayer) {
         for(int i = 0; i < 100; i++) System.out.println();
-        System.out.printf("Congratulations! You have passed * %s * level.", difficulty);
-
-        // check if the player broke the record
-        long record1 = myPlayer.playerInfo.getRecord();
-        long record2 = elapsedTime;
-        if(record2 < record1) {
-            String oldValue = String.format("%s %s %d", (String) myPlayer.playerInfo.getLogin(), myPlayer.playerInfo.getName(), record1);
-            String newValue = String.format("%s %s %d", (String) myPlayer.playerInfo.getLogin(), myPlayer.playerInfo.getName(), record2);
-            // copying content from database.txt to temp.txt without containing oldValue
-            // appending newValue to temp.txt
-            try {
-                File database = new File("./database/database.txt");
-                File temp = new File("./database/temp.txt");
-
-                Scanner in = new Scanner(database);
-                FileWriter out = new FileWriter(temp);
-
-                out.write("");
-                while(in.hasNextLine()) {
-                    String data = in.nextLine();
-                    if(!data.equals(oldValue)) {
-                        out.append(data + "\n");
+        System.out.printf("\tCongratulations! You have passed * %s * level.\n", difficulty);
+        System.out.println("\n\tYour result was saved in our database!\n\n\n");
+        // traversing database
+        try {
+            File database = new File("./database/database.txt");
+            File temp = new File("./database/temp.txt");
+            Scanner in = new Scanner(database);
+            FileWriter out = new FileWriter(temp);
+            out.write("");
+            while(in.hasNextLine()) {
+                String[] data = in.nextLine().split("\\s");
+                if(data.length <= 1) {
+                    continue;
+                }
+                String login = data[0];
+                String name = data[1];
+                if((login + " " + name).equals(String.valueOf(myPlayer.playerInfo.getLogin()) + " " + myPlayer.playerInfo.getName())) {
+                    Long oldRecord = Long.valueOf(data[2]);
+                    if(elapsedTime < oldRecord) {
+                        out.append(String.format("%s %s %d", data[0], data[1], elapsedTime));
+                        continue;
                     }
                 }
-                out.append(newValue + "\n");
-
-                in.close();
-                out.close();
-            } catch(IOException e) {
-                System.out.println(e);
-                e.printStackTrace();
+                out.append(String.join(" ", data) + "\n");
             }
+            in.close();
+            out.close();
+        } catch(IOException e) {
+            System.out.println(e);
+            e.printStackTrace();
         }
         // returning data back into database.txt with updated values
         try {
             File database = new File("./database/database.txt");
             File temp = new File("./database/temp.txt");
-            
             Scanner in = new Scanner(temp);
             FileWriter out = new FileWriter(database);
-
             out.write("");
             while(in.hasNextLine()) {
                 out.append(in.nextLine() + "\n");
             }
-
             in.close();
             out.close();
         } catch(IOException e) {
@@ -166,34 +180,41 @@ public class Main {
             e.printStackTrace();
         }
     }
+    /** 
+     * if we lose
+     */
     public static void defeat(String difficulty) {
         for(int i = 0; i < 100; i++) System.out.println();
         System.out.printf("Oh! You failed to pass * %s * level.", difficulty);
     }
+    /**
+     * simply printing welcome message with extra info for the player
+     */
     public static void welcome() {
         for(int i = 0; i < 100; i++) System.out.println();
-        System.out.println("***************************************************");
-        System.out.println("***                                             ***");
-        System.out.println("***                   Maze Game                 ***");
-        System.out.println("***                                             ***");
-        System.out.println("***                                             ***");
-        System.out.println("***   Made by Daniyar Absatov, Bekzat Molutov   ***");
-        System.out.println("***                                             ***");
-        System.out.println("***************************************************");
-
-        printTopTen();
-        
+        System.out.println("\t***************************************************");
+        System.out.println("\t***                                             ***");
+        System.out.println("\t***                   Maze Game                 ***");
+        System.out.println("\t***                                             ***");
+        System.out.println("\t***************************************************");
+        System.out.println("\n\tComplete passing of the maze as soon as possible!");
+        System.out.println("\n\t<===============================================>");
+        printLast5Games();
         System.out.println("\n\n\tTo select difficulty level of the game\n");
-        System.out.println("\tHard -> press h\n\tMedium -> press m\n\tEasy -> press e");
+        System.out.printf("\t%-10s -> press h\n\t%-10s -> press m\n\t%-10s -> press e", "Hard", "Medium", "Easy");
     }
-    public static void printTopTen() {
-        ArrayList<PlayerInfo> arr = new ArrayList<>();
+    /**
+     * simply printing last 5 game sessions with the best results of gamers
+     */
+    public static void printLast5Games() {
+        ArrayList<PlayerInfo<?>> arr = new ArrayList<>();
         try {
             File database = new File("./database/database.txt");
             Scanner in = new Scanner(database);
             while(in.hasNextLine()) {
                 String row = in.nextLine();
                 String[] data = row.split("\\s");
+                // arr.add(new PlayerInfo(data[1], Long.valueOf(data[2])));
                 if(isEmail(data[0])) {
                     arr.add(new PlayerInfo<String>(data[0], data[1], Long.parseLong(data[2])));
                 } else if(isTel(data[0])) {
@@ -205,12 +226,17 @@ public class Main {
             System.out.println(e);
             e.printStackTrace();
         }
-        Collections.sort(arr);
-        System.out.println("\n\n\tTop five players of the game\n");
-        for(int i = 0; i < 5; i++) {
-            System.out.printf("\t%s %s %d\n", arr.get(i).getLogin(), arr.get(i).getName(), arr.get(i).getRecord());
+        System.out.println("\n\n\tLast 5 playing sessions of our players:\n");
+        int sz = (arr.size() <= 5) ? arr.size() : 5;
+        System.out.printf("\t%-15s %-15s %s\n\n", "Login", "Name", "the best score");
+        for(int i = arr.size() - 1; i >= arr.size() - sz; i--) {
+            System.out.printf("\t%-15s %-15s %d\n", String.valueOf(arr.get(i).getLogin()), arr.get(i).getName(), arr.get(i).getRecord());
         }
+        System.out.println("\n\t<===============================================>");
     }
+    /** 
+     * used for setting difficult of the game
+     */
     public static String setDifficulty() {
         System.out.print("\n\tYour choice: ");
         char init = in.nextLine().charAt(0);
@@ -221,9 +247,15 @@ public class Main {
         }
         return (init == 'h') ? "hard" : (init == 'm') ? "medium" : "easy";
     }
+    /** 
+     * setting time that will be given depending on chosen difficulty
+     */
     public static long setGivenTime(String difficulty) {
        return (difficulty == "hard") ? 30L : (difficulty == "medium") ? 45L : 60L;
     }
+    /** 
+     * giving to player some info about game controllers
+     */
     public static void gameControlsInfo(String difficulty, long givenTime) {
         for(int i = 0; i < 100; i++) System.out.println();
         System.out.println("\n\tThe game has started!\n");
